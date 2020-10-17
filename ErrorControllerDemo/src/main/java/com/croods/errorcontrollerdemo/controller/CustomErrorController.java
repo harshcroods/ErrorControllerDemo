@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.croods.errorcontrollerdemo.entity.ErrorEntity;
@@ -20,7 +21,8 @@ public class CustomErrorController implements ErrorController {
 	@Autowired
 	private ErrorRepository errorRepository;
 
-	@GetMapping("/error")
+	@RequestMapping("/error")
+	@ResponseBody
 	public ModelAndView handleError(HttpServletRequest request) {
 		String errorPage = "error";
 
@@ -28,6 +30,7 @@ public class CustomErrorController implements ErrorController {
 		String errorPath = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
 		Throwable ex = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
 		String errorMessage = ex.getMessage();
+
 		if (status != null) {
 			if (status == HttpStatus.NOT_FOUND.value()) {
 				// handle HTTP 404 Not Found error
@@ -42,22 +45,19 @@ public class CustomErrorController implements ErrorController {
 				errorPage = "error-403";
 			}
 		}
-		
+		System.err.println("Error Page--------->" + errorPage);
 		// save error
 		ErrorEntity errorEntity = new ErrorEntity();
 		errorEntity.setStatusCode(status);
 		errorEntity.setErrorDetails(errorMessage);
 		errorEntity.setErrorPath(errorPath);
 		errorRepository.save(errorEntity);
-		
+
 		// errorModel
 		ModelAndView errorModel = new ModelAndView(errorPage);
 		errorModel.addObject("errorEntity", errorEntity);
 		return errorModel;
-
 	}
-	
-	
 
 	@Override
 	public String getErrorPath() {
